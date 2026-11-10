@@ -99,8 +99,8 @@ class TeamSpeakConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured(updates=user_input)
                 return self.async_create_entry(
-                    title=info.get("virtualserver_name")
-                    or f"TeamSpeak 6 ({user_input[CONF_HOST]})",
+                    # Short default title -> entity IDs like sensor.teamspeak_6_online
+                    title=info.get("virtualserver_name") or "TeamSpeak 6",
                     data=user_input,
                 )
 

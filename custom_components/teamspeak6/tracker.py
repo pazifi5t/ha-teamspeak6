@@ -125,7 +125,19 @@ class ClientTracker:
         events: list[ClientEvent] = []
         online_identities = {c.identity for c in clients.values()}
 
+        # A clid can be handed out again; then it is a different connection.
+        known = {
+            clid: c
+            for clid, c in self._known.items()
+            if clid not in clients or clients[clid].identity == c.identity
+        }
         for clid, client in self._known.items():
+            if clid not in known:
+                events.append(ClientEvent("left", client))
+                if client.identity not in online_identities:
+                    self._left_at[client.identity] = now
+
+        for clid, client in known.items():
             if clid not in clients:
                 events.append(ClientEvent("left", client))
                 if client.identity not in online_identities:
@@ -133,7 +145,7 @@ class ClientTracker:
 
         previous_identities = {c.identity for c in self._known.values()}
         for clid, client in clients.items():
-            if clid in self._known:
+            if clid in known:
                 continue
             left = self._left_at.pop(client.identity, None)
             # Same user was online in the last poll (reconnect between two

@@ -101,6 +101,16 @@ def test_second_connection_of_same_user_is_flagged():
     assert [(e.kind, e.rejoin) for e in ev] == [("joined", True)]
 
 
+def test_reused_clid_is_a_new_connection():
+    t = tracker.ClientTracker(rejoin_grace=60)
+    t.update(tracker.parse_clients([raw(4, "alice", dbid=5)]), now=0)
+    ev = t.update(tracker.parse_clients([raw(4, "bob", dbid=6)]), now=15)
+    assert sorted((e.kind, e.client.nickname, e.rejoin) for e in ev) == [
+        ("joined", "bob", False),
+        ("left", "alice", False),
+    ]
+
+
 def test_reset_suppresses_events_after_outage():
     t = tracker.ClientTracker(rejoin_grace=60)
     t.update({}, now=0)
