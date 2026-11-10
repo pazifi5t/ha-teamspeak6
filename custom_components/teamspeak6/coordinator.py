@@ -88,12 +88,22 @@ class TeamSpeakCoordinator(DataUpdateCoordinator[TeamSpeakData]):
             self.tracker.reset()
             raise ConfigEntryAuthFailed(str(err)) from err
         except TeamSpeakError as err:
+            _LOGGER.debug("Poll failed, tracker reset: %s", err)
             # After an outage we only take a fresh baseline instead of
             # reporting everybody as "joined".
             self.tracker.reset()
             raise UpdateFailed(f"Cannot reach TeamSpeak server: {err}") from err
 
+        _LOGGER.debug(
+            "Poll: %d voice clients %s",
+            len(clients),
+            sorted(f"{c.clid}/{c.database_id}" for c in clients.values()),
+        )
         for event in self.tracker.update(clients, now):
+            _LOGGER.debug(
+                "Event %s: clid=%s dbid=%s rejoin=%s",
+                event.kind, event.client.clid, event.client.database_id, event.rejoin,
+            )
             self.hass.bus.async_fire(
                 EVENT_CLIENT_JOINED if event.kind == "joined" else EVENT_CLIENT_LEFT,
                 {
