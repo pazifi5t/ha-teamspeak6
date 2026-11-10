@@ -14,7 +14,7 @@ The integration reads the server's **WebQuery** (HTTP query) with a read-only AP
 - **Sensor `Online`**: number of connected users (ServerQuery connections are filtered out), with attributes
   - `users` – sorted list of nicknames
   - `channels` – non-empty channels in server order, each with its users; spacer prefixes like `[cspacer]` are removed
-  - `max_clients`
+  - `max_clients` – only if the key may run `serverinfo` (a `scope=read` key on TeamSpeak 6 may not; the integration works fine without it, the device is then named after the host)
 - **Events** `teamspeak6_client_joined` / `teamspeak6_client_left` with `nickname`, `channel`, `server`, `client_database_id` and `rejoin`
 - **Reconnect detection**: a user who comes back within a configurable window is flagged with `rejoin: true`
 - **No notification flood** after a restart of Home Assistant or the TeamSpeak server: the first poll only sets a baseline

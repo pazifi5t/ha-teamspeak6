@@ -68,9 +68,8 @@ async def _validate(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, A
         use_ssl=data[CONF_SSL],
         verify_ssl=data[CONF_VERIFY_SSL],
     )
-    info = await api.serverinfo()
-    await api.clientlist()  # make sure the key may read clients, too
-    return info
+    await api.clientlist()  # this is what the key must be able to do
+    return await api.serverinfo()  # optional, {} with a scope=read key
 
 
 class TeamSpeakConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -100,7 +99,8 @@ class TeamSpeakConfigFlow(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(unique_id)
                 self._abort_if_unique_id_configured(updates=user_input)
                 return self.async_create_entry(
-                    title=info.get("virtualserver_name") or user_input[CONF_HOST],
+                    title=info.get("virtualserver_name")
+                    or f"TeamSpeak 6 ({user_input[CONF_HOST]})",
                     data=user_input,
                 )
 
