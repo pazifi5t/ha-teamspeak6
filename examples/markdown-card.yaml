@@ -1,0 +1,17 @@
+# Dashboard card: who is online, grouped by channel.
+# Replace sensor.my_teamspeak_server_online with your sensor
+# (Settings > Devices & services > TeamSpeak 6 > entities).
+type: markdown
+title: TeamSpeak
+content: |
+  {% set entity = 'sensor.my_teamspeak_server_online' %}
+  {% if states(entity) in ['unavailable', 'unknown'] %}⚠️ Server not reachable.
+  {% elif states(entity) | int(0) == 0 %}Nobody online.
+  {% else %}
+  {% for ch in state_attr(entity, 'channels') %}
+  **{{ ch.name }}**
+  {% for user in ch.users %}
+  - {{ user }}
+  {% endfor %}
+  {% endfor %}
+  {% endif %}

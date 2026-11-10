@@ -1,0 +1,62 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "TeamSpeak 6 server",
+        "description": "Connect to the WebQuery (HTTP query) of your TeamSpeak 6 server. Create a read-only key via the SSH query with `apikeyadd scope=read lifetime=0`.",
+        "data": {
+          "host": "Host",
+          "port": "WebQuery port",
+          "api_key": "API key",
+          "server_id": "Virtual server ID",
+          "ssl": "Use HTTPS",
+          "verify_ssl": "Verify SSL certificate"
+        },
+        "data_description": {
+          "host": "IP address or hostname of the TeamSpeak server.",
+          "port": "Default is 10080 (HTTP) or 10443 (HTTPS).",
+          "api_key": "A key with scope read is enough.",
+          "server_id": "Usually 1."
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API key",
+        "description": "The TeamSpeak server rejected the API key. Enter a new one.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the WebQuery. Is it enabled and is the port correct?",
+      "invalid_auth": "The API key was rejected.",
+      "unknown": "Unexpected error, see the log."
+    },
+    "abort": {
+      "already_configured": "This server is already configured.",
+      "reauth_successful": "API key updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "rejoin_grace": "Reconnect window (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often the client list is polled. 10–30 s is a good range.",
+          "rejoin_grace": "A user who comes back within this time is flagged with rejoin: true in the join event, so automations can skip short reconnects."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "online": {
+        "name": "Online"
+      }
+    }
+  }
+}

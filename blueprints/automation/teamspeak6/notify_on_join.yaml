@@ -1,0 +1,86 @@
+blueprint:
+  name: TeamSpeak 6 – notify when someone joins
+  description: >
+    Sends a push notification to a mobile app device when a user joins your
+    TeamSpeak 6 server. Requires the TeamSpeak 6 integration
+    (https://github.com/pazifi5t/ha-teamspeak6). Short reconnects can be
+    ignored; the window is set in the integration options.
+  domain: automation
+  source_url: https://github.com/pazifi5t/ha-teamspeak6/blob/main/blueprints/automation/teamspeak6/notify_on_join.yaml
+  input:
+    notify_device:
+      name: Device to notify
+      description: A device running the Home Assistant Companion App.
+      selector:
+        device:
+          filter:
+            - integration: mobile_app
+    ignored_nicknames:
+      name: Ignored nicknames
+      description: >
+        Nicknames that should not trigger a notification, e.g. your own.
+        Comma-separated or one per line, not case-sensitive.
+      default: ""
+      selector:
+        text:
+          multiline: true
+    skip_rejoins:
+      name: Ignore quick reconnects
+      description: Skip users who were online again within the reconnect window.
+      default: true
+      selector:
+        boolean:
+    notification_title:
+      name: Title
+      default: TeamSpeak
+      selector:
+        text:
+    notification_message:
+      name: Message
+      description: "Placeholders: {nickname}, {channel}, {server}"
+      default: "{nickname} is now in {channel}"
+      selector:
+        text:
+    android_channel:
+      name: Android notification channel
+      description: Lets you give TeamSpeak notifications their own sound and priority on Android.
+      default: TeamSpeak
+      selector:
+        text:
+
+mode: queued
+max: 20
+
+triggers:
+  - trigger: event
+    event_type: teamspeak6_client_joined
+
+variables:
+  ignored_raw: !input ignored_nicknames
+  skip_rejoins: !input skip_rejoins
+  message_template: !input notification_message
+  ignored: >
+    {{ (ignored_raw or '').replace('\n', ',').split(',')
+       | map('trim') | map('lower') | reject('eq', '') | list }}
+  nickname: "{{ trigger.event.data.nickname }}"
+  message: >
+    {{ message_template
+       | replace('{nickname}', trigger.event.data.nickname)
+       | replace('{channel}', trigger.event.data.channel)
+       | replace('{server}', trigger.event.data.server) }}
+
+conditions:
+  - condition: template
+    value_template: "{{ nickname | lower not in ignored }}"
+  - condition: template
+    value_template: "{{ not (skip_rejoins and trigger.event.data.rejoin) }}"
+
+actions:
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: !input notification_title
+    message: "{{ message }}"
+    data:
+      channel: !input android_channel
+      tag: "teamspeak6-{{ trigger.event.data.client_database_id }}"

@@ -1,0 +1,12 @@
+{
+  "domain": "teamspeak6",
+  "name": "TeamSpeak 6",
+  "codeowners": ["@pazifi5t"],
+  "config_flow": true,
+  "documentation": "https://github.com/pazifi5t/ha-teamspeak6",
+  "integration_type": "service",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/pazifi5t/ha-teamspeak6/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

@@ -1,0 +1,62 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "TeamSpeak-6-Server",
+        "description": "Verbindung zur WebQuery (HTTP-Query) deines TeamSpeak-6-Servers. Einen Lese-Key erzeugst du über die SSH-Query mit `apikeyadd scope=read lifetime=0`.",
+        "data": {
+          "host": "Host",
+          "port": "WebQuery-Port",
+          "api_key": "API-Key",
+          "server_id": "Virtuelle Server-ID",
+          "ssl": "HTTPS verwenden",
+          "verify_ssl": "SSL-Zertifikat prüfen"
+        },
+        "data_description": {
+          "host": "IP-Adresse oder Hostname des TeamSpeak-Servers.",
+          "port": "Standard ist 10080 (HTTP) bzw. 10443 (HTTPS).",
+          "api_key": "Ein Key mit scope read reicht.",
+          "server_id": "Meist 1."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Neuer API-Key",
+        "description": "Der TeamSpeak-Server hat den API-Key abgelehnt. Bitte einen neuen eingeben.",
+        "data": {
+          "api_key": "API-Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "WebQuery nicht erreichbar. Ist sie aktiviert und stimmt der Port?",
+      "invalid_auth": "Der API-Key wurde abgelehnt.",
+      "unknown": "Unerwarteter Fehler, siehe Log."
+    },
+    "abort": {
+      "already_configured": "Dieser Server ist bereits eingerichtet.",
+      "reauth_successful": "API-Key aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "rejoin_grace": "Reconnect-Fenster (Sekunden)"
+        },
+        "data_description": {
+          "scan_interval": "Wie oft die Client-Liste abgefragt wird. 10–30 s sind sinnvoll.",
+          "rejoin_grace": "Wer innerhalb dieser Zeit wiederkommt, bekommt im Join-Event rejoin: true, damit Automationen kurze Reconnects ignorieren können."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "online": {
+        "name": "Online"
+      }
+    }
+  }
+}
