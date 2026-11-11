@@ -64,7 +64,13 @@ curl -s -H "x-api-key: YOUR_KEY" http://TS_SERVER_IP:10080/1/clientlist
 
 ## Installation
 
-### HACS (custom repository)
+### Marketplace (Home Assistant 2026.11 and newer, recommended)
+
+1. **Settings → Marketplace → Add from link**
+2. Repository: `https://github.com/pazifi5t/ha-teamspeak6`, type **Integration**
+3. Install **TeamSpeak 6**; the setup dialog opens right away
+
+### HACS (Home Assistant before 2026.11)
 
 1. HACS → ⋮ → **Custom repositories**
 2. Repository: `https://github.com/pazifi5t/ha-teamspeak6`, type **Integration**
