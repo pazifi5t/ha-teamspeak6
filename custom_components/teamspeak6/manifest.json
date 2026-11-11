@@ -1,7 +1,13 @@
 {
   "domain": "teamspeak6",
   "name": "TeamSpeak 6",
-  "codeowners": ["@pazifi5t"],
+  "categories": [
+    "messaging_notifications.chat_apps",
+    "media_entertainment.gaming"
+  ],
+  "codeowners": [
+    "@pazifi5t"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/pazifi5t/ha-teamspeak6",
   "integration_type": "service",
