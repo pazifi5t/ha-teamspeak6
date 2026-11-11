@@ -120,6 +120,15 @@ actions:
 
 See [`examples/markdown-card.yaml`](examples/markdown-card.yaml). It shows users grouped by channel and distinguishes "nobody online" from "server not reachable".
 
+## Alternatives
+
+Depending on what you need, another project may fit better:
+
+- [SamuelReithmeir/teamspeak_status_sensors](https://github.com/SamuelReithmeir/teamspeak_status_sensors) – also TeamSpeak 6 via WebQuery, focused on server monitoring (uptime, bandwidth, max clients, server status).
+- For **TeamSpeak 3** servers (classic ServerQuery): [P4nto/homeassistant-teamspeak](https://github.com/P4nto/homeassistant-teamspeak), [sambukor-star/ha-teamspeak](https://github.com/sambukor-star/ha-teamspeak).
+
+This integration focuses on *who is where*: users grouped by channel, join/leave events with reconnect detection, ready-made notifications, and it works with a read-only (`scope=read`) API key.
+
 ## Privacy
 
 Nicknames end up in Home Assistant's state history like any other attribute. The API key is stored in the config entry and redacted from diagnostics. Nothing leaves your network.
