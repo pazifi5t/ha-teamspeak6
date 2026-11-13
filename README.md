@@ -137,6 +137,12 @@ Nicknames end up in Home Assistant's state history like any other attribute. The
 
 Not affiliated with or endorsed by TeamSpeak Systems GmbH. TeamSpeak is a trademark of its owner.
 
+## Support
+
+If you find this integration useful, you can support its development via GitHub Sponsors:
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-pazifi5t-ea4aaa?logo=githubsponsors)](https://github.com/sponsors/pazifi5t)
+
 ## License
 
 [MIT](LICENSE) © pazifi5t
