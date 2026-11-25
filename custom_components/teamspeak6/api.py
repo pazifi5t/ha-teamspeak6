@@ -13,6 +13,12 @@ REQUEST_TIMEOUT = 10
 _AUTH_STATUS_CODES = {5122, 5124}
 # "command not in api key scope": key is valid, command is not allowed.
 _OUT_OF_SCOPE = 5120
+# "insufficient client permissions" (e.g. b_virtualserver_client_dblist).
+_NO_PERMISSION = 2568
+
+# clientdblist is paged; stop after this many pages as a safety net.
+DBLIST_PAGE_SIZE = 200
+DBLIST_MAX_PAGES = 50
 
 
 class TeamSpeakError(Exception):
@@ -29,6 +35,10 @@ class TeamSpeakAuthError(TeamSpeakError):
 
 class TeamSpeakScopeError(TeamSpeakError):
     """API key valid, but the command is outside its scope."""
+
+
+class TeamSpeakPermissionError(TeamSpeakError):
+    """Command in scope, but the key's identity lacks a permission."""
 
 
 class TeamSpeakWebQuery:
@@ -72,6 +82,12 @@ class TeamSpeakWebQuery:
             # Valid key, but this command needs a wider scope (e.g. serverinfo
             # with a scope=read key answers HTTP 401 / 5120).
             raise TeamSpeakScopeError(message)
+        if code == _NO_PERMISSION:
+            perm = status.get("failed_permid")
+            raise TeamSpeakPermissionError(
+                f"{message or 'insufficient client permissions'}"
+                + (f" (failed_permid={perm})" if perm else "")
+            )
         if http_status in (401, 403) or code in _AUTH_STATUS_CODES:
             raise TeamSpeakAuthError(message or f"HTTP {http_status}")
         if not isinstance(data, dict):
@@ -105,3 +121,26 @@ class TeamSpeakWebQuery:
     async def channellist(self) -> list[dict[str, Any]]:
         """Return all channels."""
         return await self._command("channellist")
+
+    async def clientdblist(self) -> tuple[list[dict[str, Any]], bool]:
+        """Return all client database entries and whether the list is complete.
+
+        Raises TeamSpeakScopeError / TeamSpeakPermissionError if the key may
+        not run clientdblist.
+        """
+        rows: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        start = 0
+        for _ in range(DBLIST_MAX_PAGES):
+            body = await self._command(
+                f"clientdblist?start={start}&duration={DBLIST_PAGE_SIZE}"
+            )
+            if not body:
+                return rows, True
+            ids = {str(r.get("cldbid")) for r in body}
+            if ids <= seen:  # server ignored "start": do not loop forever
+                return rows, False
+            seen |= ids
+            rows.extend(body)
+            start += len(body)
+        return rows, False

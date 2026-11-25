@@ -15,12 +15,13 @@ The integration reads the server's **WebQuery** (HTTP query) with a read-only AP
   - `users` – sorted list of nicknames
   - `channels` – non-empty channels in server order, each with its users; spacer prefixes like `[cspacer]` are removed
   - `max_clients` – only if the key may run `serverinfo` (a `scope=read` key on TeamSpeak 6 may not; the integration works fine without it, the device is then named after the host)
+- **Members and last seen** (since 0.2.0): a select `Member` with everybody the server knows, a sensor `Member last seen` (timestamp) and a binary sensor `Member online` for the chosen member – see [below](#members-and-last-seen)
 - **Events** `teamspeak6_client_joined` / `teamspeak6_client_left` with `nickname`, `channel`, `server`, `client_database_id` and `rejoin`
 - **Reconnect detection**: a user who comes back within a configurable window is flagged with `rejoin: true`
 - **No notification flood** after a restart of Home Assistant or the TeamSpeak server: the first poll only sets a baseline
 - Channel list is refreshed every 5 minutes, or immediately when someone appears in a new channel
 - Setup via the UI, re-authentication when the key is rejected, diagnostics with secrets redacted
-- **Blueprint** for push notifications and an example **dashboard card**
+- **Blueprint** for push notifications and example **dashboard cards**
 
 ## Requirements
 
@@ -94,6 +95,47 @@ Copy `custom_components/teamspeak6` into your `config/custom_components/` and re
 
 **Options** (⚙ on the integration): polling interval (default 15 s, minimum 5 s) and reconnect window (default 60 s, 0 = off). Very short intervals can trigger the query flood protection.
 
+## Members and last seen
+
+Pick somebody in **`select.<server>_member`** and see when they were last on the server:
+
+| Entity | Shows |
+|---|---|
+| `select.<server>_member` | All known members, sorted by name. Duplicate nicknames get their database ID, e.g. `Max (#12)`. The choice survives restarts. |
+| `binary_sensor.<server>_member_online` | `Online` / `Offline` for the chosen member |
+| `sensor.<server>_member_last_seen` | Timestamp. **Offline:** when the member was last seen. **Online:** start of the current session. |
+
+Attributes of the last-seen sensor: `member`, `online`, `last_login` and `source`:
+
+- `online` – the member is connected right now, the value is the session start
+- `observed` – Home Assistant saw the member online itself; the value is the last poll in which they were connected (so it is at most one polling interval early)
+- `last_login` – the member logged in while Home Assistant was not watching; only the login time is known
+
+### Where the data comes from
+
+1. **`clientdblist`** (optional): every identity in the server database with its nickname and the time of the last *login* (`client_lastconnected`). ServerQuery logins (`serveradmin` etc.) are filtered out. Read at start-up and then once per hour.
+2. **Own observation**: the integration remembers when each member was last online and writes it to `.storage/teamspeak6.<entry_id>.members`, so it survives restarts. `client_lastconnected` alone cannot tell when a session *ended*.
+
+The newer of both times wins.
+
+### Permission
+
+`clientdblist` needs the server permission **`b_virtualserver_client_dblist`** for the identity that created the key (the default `serveradmin` has it) **and** a key whose scope includes the command. Test your key:
+
+```sh
+read -rsp 'API key: ' K; echo; printf 'x-api-key: %s\n' "$K" | curl -s -H @- "http://TS_SERVER_IP:10080/1/clientdblist?duration=3"; echo; unset K
+```
+
+| Result | Meaning |
+|---|---|
+| `"code":0` and a `body` | works – full member list |
+| `"code":5120` | command not in the key's scope |
+| `"code":2568` | key identity lacks `b_virtualserver_client_dblist` |
+
+If the key may not run it, nothing breaks: the integration falls back to its own observation (members appear once they have been online while Home Assistant was running) and raises a repair notice under **Settings → Repairs** that you can ignore. To use a different key later: **Settings → Devices & services → TeamSpeak 6 → ⋮ → Reconfigure**.
+
+Example card: [`examples/member-card.yaml`](examples/member-card.yaml).
+
 ## Notifications
 
 Import the blueprint:
@@ -116,9 +158,10 @@ actions:
       message: "{{ trigger.event.data.nickname }} joined {{ trigger.event.data.channel }}"
 ```
 
-## Dashboard card
+## Dashboard cards
 
-See [`examples/markdown-card.yaml`](examples/markdown-card.yaml). It shows users grouped by channel and distinguishes "nobody online" from "server not reachable".
+- [`examples/markdown-card.yaml`](examples/markdown-card.yaml) shows users grouped by channel and distinguishes "nobody online" from "server not reachable".
+- [`examples/member-card.yaml`](examples/member-card.yaml) combines it with the member select and last-seen sensor.
 
 ## Alternatives
 
@@ -131,7 +174,7 @@ This integration focuses on *who is where*: users grouped by channel, join/leave
 
 ## Privacy
 
-Nicknames end up in Home Assistant's state history like any other attribute. The API key is stored in the config entry and redacted from diagnostics. Nothing leaves your network.
+Nicknames end up in Home Assistant's state history like any other attribute. The member list (nicknames, database IDs, last-seen times) is stored locally in `.storage/` and deleted when you remove the integration; the select's option list is not written to the recorder. The API key is stored in the config entry and redacted from diagnostics. Nothing leaves your network.
 
 ## Disclaimer
 

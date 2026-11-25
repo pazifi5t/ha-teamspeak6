@@ -25,6 +25,13 @@
         "data": {
           "api_key": "API-Key"
         }
+      },
+      "reconfigure": {
+        "title": "API-Key ändern",
+        "description": "Neuen API-Key eingeben, z. B. einen, der auch `clientdblist` darf (vollständige Mitgliederliste).",
+        "data": {
+          "api_key": "API-Key"
+        }
       }
     },
     "error": {
@@ -34,7 +41,8 @@
     },
     "abort": {
       "already_configured": "Dieser Server ist bereits eingerichtet.",
-      "reauth_successful": "API-Key aktualisiert."
+      "reauth_successful": "API-Key aktualisiert.",
+      "reconfigure_successful": "API-Key aktualisiert."
     }
   },
   "options": {
@@ -56,7 +64,61 @@
     "sensor": {
       "online": {
         "name": "Online"
+      },
+      "member_last_seen": {
+        "name": "Mitglied zuletzt gesehen",
+        "state_attributes": {
+          "member": {
+            "name": "Mitglied"
+          },
+          "online": {
+            "name": "Online"
+          },
+          "source": {
+            "name": "Quelle",
+            "state": {
+              "online": "Gerade online (Beginn der Sitzung)",
+              "observed": "Von Home Assistant beobachtet",
+              "last_login": "Letzter Login (Server-Datenbank)"
+            }
+          },
+          "last_login": {
+            "name": "Letzter Login"
+          },
+          "member_source": {
+            "name": "Mitgliederliste",
+            "state": {
+              "database": "Server-Datenbank",
+              "observed": "Nur eigene Beobachtung"
+            }
+          }
+        }
       }
+    },
+    "binary_sensor": {
+      "member_online": {
+        "name": "Mitglied online",
+        "state": {
+          "on": "Online",
+          "off": "Offline"
+        }
+      }
+    },
+    "select": {
+      "member": {
+        "name": "Mitglied"
+      }
+    }
+  },
+  "issues": {
+    "clientdblist_not_allowed": {
+      "title": "TeamSpeak 6: Mitgliederliste eingeschränkt",
+      "description": "Der API-Key für {server} darf `clientdblist` nicht ausführen. Die Mitgliederliste enthält daher nur Personen, die Home Assistant seit der Installation von Version 0.2.0 online gesehen hat, und „zuletzt gesehen“ umfasst nur Sitzungen, die Home Assistant selbst beobachtet hat.\n\nAlles andere funktioniert weiter. Für die vollständige Mitgliederliste einen API-Key, der `clientdblist` darf, unter **Einstellungen → Geräte & Dienste → TeamSpeak 6 → ⋮ → Neu konfigurieren** eintragen. Du kannst diese Meldung auch ignorieren."
+    }
+  },
+  "exceptions": {
+    "unknown_member": {
+      "message": "Unbekanntes Mitglied: {member}"
     }
   }
 }

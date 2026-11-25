@@ -1,0 +1,41 @@
+# Dashboard card: who is online + when was a member last seen.
+# Replace "teamspeak_6" with the prefix of your entities
+# (Settings > Devices & services > TeamSpeak 6 > entities).
+type: vertical-stack
+cards:
+  - type: markdown
+    title: TeamSpeak
+    content: |
+      {% set entity = 'sensor.teamspeak_6_online' %}
+      {% if states(entity) in ['unavailable', 'unknown'] %}⚠️ Server not reachable.
+      {% elif states(entity) | int(0) == 0 %}Nobody online.
+      {% else %}
+      {% for ch in state_attr(entity, 'channels') %}
+      **{{ ch.name }}**
+      {% for user in ch.users %}
+      - {{ user }}
+      {% endfor %}
+      {% endfor %}
+      {% endif %}
+  - type: entities
+    entities:
+      - entity: select.teamspeak_6_member
+        name: Member
+      - entity: binary_sensor.teamspeak_6_member_online
+        name: Status
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.teamspeak_6_member_online
+            state: "off"
+        row:
+          entity: sensor.teamspeak_6_member_last_seen
+          name: Last seen
+          format: relative
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.teamspeak_6_member_online
+            state: "on"
+        row:
+          entity: sensor.teamspeak_6_member_last_seen
+          name: Online since
+          format: relative

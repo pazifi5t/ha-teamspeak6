@@ -25,6 +25,13 @@
         "data": {
           "api_key": "API key"
         }
+      },
+      "reconfigure": {
+        "title": "Change API key",
+        "description": "Enter a new API key, e.g. one that may also run `clientdblist` for the full member list.",
+        "data": {
+          "api_key": "API key"
+        }
       }
     },
     "error": {
@@ -34,7 +41,8 @@
     },
     "abort": {
       "already_configured": "This server is already configured.",
-      "reauth_successful": "API key updated."
+      "reauth_successful": "API key updated.",
+      "reconfigure_successful": "API key updated."
     }
   },
   "options": {
@@ -56,7 +64,61 @@
     "sensor": {
       "online": {
         "name": "Online"
+      },
+      "member_last_seen": {
+        "name": "Member last seen",
+        "state_attributes": {
+          "member": {
+            "name": "Member"
+          },
+          "online": {
+            "name": "Online"
+          },
+          "source": {
+            "name": "Source",
+            "state": {
+              "online": "Online now (session start)",
+              "observed": "Observed by Home Assistant",
+              "last_login": "Last login (server database)"
+            }
+          },
+          "last_login": {
+            "name": "Last login"
+          },
+          "member_source": {
+            "name": "Member list",
+            "state": {
+              "database": "Server database",
+              "observed": "Own observation only"
+            }
+          }
+        }
       }
+    },
+    "binary_sensor": {
+      "member_online": {
+        "name": "Member online",
+        "state": {
+          "on": "Online",
+          "off": "Offline"
+        }
+      }
+    },
+    "select": {
+      "member": {
+        "name": "Member"
+      }
+    }
+  },
+  "issues": {
+    "clientdblist_not_allowed": {
+      "title": "TeamSpeak 6: member list limited",
+      "description": "The API key for {server} may not run `clientdblist`. The member list therefore only contains people Home Assistant has seen online since version 0.2.0 was installed, and \"last seen\" only covers sessions Home Assistant observed itself.\n\nEverything else keeps working. For the full member list, enter an API key that may run `clientdblist` via **Settings → Devices & services → TeamSpeak 6 → ⋮ → Reconfigure**. You can also ignore this message."
+    }
+  },
+  "exceptions": {
+    "unknown_member": {
+      "message": "Unknown member: {member}"
     }
   }
 }

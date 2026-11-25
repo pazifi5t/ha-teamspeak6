@@ -140,6 +140,32 @@ class TeamSpeakConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Swap the API key, e.g. for one that may run clientdblist."""
+        errors: dict[str, str] = {}
+        entry = self._get_reconfigure_entry()
+        if user_input is not None:
+            data = {**entry.data, CONF_API_KEY: user_input[CONF_API_KEY]}
+            try:
+                await _validate(self.hass, data)
+            except TeamSpeakAuthError:
+                errors["base"] = "invalid_auth"
+            except TeamSpeakError:
+                errors["base"] = "cannot_connect"
+            except Exception:  # noqa: BLE001
+                _LOGGER.exception("Unexpected error")
+                errors["base"] = "unknown"
+            else:
+                return self.async_update_reload_and_abort(entry, data=data)
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema({vol.Required(CONF_API_KEY): _PASSWORD}),
+            errors=errors,
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry) -> TeamSpeakOptionsFlow:
