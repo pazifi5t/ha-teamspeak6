@@ -21,3 +21,13 @@ CHANNEL_REFRESH_INTERVAL: Final = 300  # seconds
 
 EVENT_CLIENT_JOINED: Final = f"{DOMAIN}_client_joined"
 EVENT_CLIENT_LEFT: Final = f"{DOMAIN}_client_left"
+
+# clientdblist (all known members) is refreshed at most this often.
+DBLIST_REFRESH_INTERVAL: Final = 3600  # seconds
+
+STORAGE_VERSION: Final = 1
+
+MEMBER_SOURCE_DATABASE: Final = "database"  # clientdblist + own observation
+MEMBER_SOURCE_OBSERVED: Final = "observed"  # own observation only
+
+ISSUE_DBLIST_NOT_ALLOWED: Final = "clientdblist_not_allowed"

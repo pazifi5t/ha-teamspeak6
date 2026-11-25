@@ -30,5 +30,8 @@ async def async_get_config_entry_diagnostics(
         ),
         "clients_online": len(data.clients),
         "channels_known": len(data.channels),
+        "members_known": len(coordinator.members.members),
+        "member_selected": coordinator.members.selected is not None,
+        "member_source": coordinator.member_source,
         "last_update_success": coordinator.last_update_success,
     }

@@ -9,16 +9,23 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
     CONF_SSL,
     CONF_VERIFY_SSL,
+    EVENT_HOMEASSISTANT_STOP,
     Platform,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import TeamSpeakWebQuery
-from .const import CONF_SERVER_ID, DEFAULT_SCAN_INTERVAL, DEFAULT_SERVER_ID
-from .coordinator import TeamSpeakConfigEntry, TeamSpeakCoordinator
+from .const import CONF_SERVER_ID, DEFAULT_SCAN_INTERVAL, DEFAULT_SERVER_ID, DOMAIN
+from .coordinator import (
+    TeamSpeakConfigEntry,
+    TeamSpeakCoordinator,
+    issue_id,
+    members_store,
+)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SELECT, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: TeamSpeakConfigEntry) -> bool:
@@ -43,6 +50,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: TeamSpeakConfigEntry) ->
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
+    # Keep the exact "last seen" time across a restart.
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, coordinator.async_save_now)
+    )
     return True
 
 
@@ -53,4 +64,12 @@ async def _async_reload(hass: HomeAssistant, entry: TeamSpeakConfigEntry) -> Non
 
 async def async_unload_entry(hass: HomeAssistant, entry: TeamSpeakConfigEntry) -> bool:
     """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        await entry.runtime_data.async_save_now()
+    return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: TeamSpeakConfigEntry) -> None:
+    """Delete the stored members and the repair issue with the entry."""
+    await members_store(hass, entry.entry_id).async_remove()
+    ir.async_delete_issue(hass, DOMAIN, issue_id(entry.entry_id))
