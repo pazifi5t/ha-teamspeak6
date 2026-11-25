@@ -19,8 +19,8 @@ def _load(name):
 tracker = _load("tracker")
 members = _load("members")
 
-UID_A = "A" * 27 + "="
-UID_B = "b" * 27 + "="
+UID_A = "A" * 43 + "="  # TeamSpeak 6: 44 characters
+UID_B = "b" * 27 + "="  # TeamSpeak 3: 28 characters
 
 
 def online(*people):
@@ -31,9 +31,10 @@ def online(*people):
     }
 
 
-def dbrow(dbid, nick, uid, last=0):
+def dbrow(dbid, nick, uid, last=0, total=5):
     return {
         "cldbid": str(dbid),
+        "client_totalconnections": str(total),
         "client_nickname": nick,
         "client_unique_identifier": uid,
         "client_lastconnected": str(last),
@@ -45,6 +46,20 @@ def test_identity_filter():
     assert not members.is_real_identity("serveradmin")
     assert not members.is_real_identity("ServerQuery")
     assert members.is_real_identity(None)  # field missing: keep
+
+
+def test_real_ts6_dblist_shape():
+    # Shape of a real TeamSpeak 6 answer (values made up).
+    body = [
+        {"cldbid": "2", "client_nickname": "ServerQuery Guest", "client_lastconnected": "1770000000",
+         "client_totalconnections": "0", "client_unique_identifier": "ServerQuery"},
+        {"cldbid": "3", "client_nickname": "Alice", "client_lastconnected": "1790000000",
+         "client_totalconnections": "441", "client_unique_identifier": "Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMTI="},
+    ]
+    reg = members.MemberRegistry()
+    reg.merge_dblist(body, complete=True)
+    assert reg.options() == ["Alice"]
+    assert reg.status("3").timestamp == 1790000000
 
 
 def test_dblist_skips_query_logins_and_sorts_options():

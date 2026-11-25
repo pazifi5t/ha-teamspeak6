@@ -22,10 +22,10 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .tracker import Client
 
-# A real TeamSpeak identity is a base64 encoded SHA-1 hash (28 characters).
-# ServerQuery logins show up with unique identifiers like "serveradmin" or
-# "ServerQuery" and are skipped.
-_IDENTITY_RE = re.compile(r"^[A-Za-z0-9+/]{27}=$")
+# A real TeamSpeak identity is a base64 encoded hash: 28 characters on
+# TeamSpeak 3 (SHA-1), 44 on TeamSpeak 6 (SHA-256). ServerQuery logins show
+# up with unique identifiers like "serveradmin" or "ServerQuery" and are skipped.
+_IDENTITY_RE = re.compile(r"^[A-Za-z0-9+/]{20,}={0,2}$")
 
 # While a member stays online, persist the "last seen" time at least this often,
 # so a crash of Home Assistant loses at most this much precision.
@@ -134,6 +134,8 @@ class MemberRegistry:
         for row in rows:
             if not is_real_identity(row.get("client_unique_identifier")):
                 continue
+            if str(row.get("client_totalconnections", "1")) == "0":
+                continue  # never connected (e.g. "ServerQuery Guest")
             if not (dbid := _valid_dbid(row.get("cldbid"))):
                 continue
             seen.add(dbid)
